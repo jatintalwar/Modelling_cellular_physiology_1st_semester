@@ -1,0 +1,27 @@
+function [ dydt ] = morris_lecar( t,y,param )
+
+% morris-lecars model function for phase plane analysis
+
+E_l= param(1);       % reversal potential of leakage in mV
+E_k= param(2);       % reversal potential of pottasium in mV
+E_ca = param(3);     % mv 
+g_l= param(4);       % maximum conductance per unit area for leakage in mS/cm^2
+g_k= param(5);         % maximum conductance per unit area for pottasium in mS/cm^2
+g_ca= param(6);        % a gating variable for pottasium ms/cm^2
+I_e=param(7);     
+
+
+dydt= zeros(2,1);
+
+m_inf= 1/(1+exp(-0.133.*(y(1) + 1)));
+I_m= g_l.*(y(1)-E_l) + g_k*y(2).*(y(1)- E_k) + g_ca*m_inf.*(y(1)-E_ca);
+
+dydt(1)=I_e-I_m;
+
+N_INF= 1/(exp(-0.138.*(y(1)-10)));
+TAO_N = 3/(cosh(0.0345.*(y(1)-10)));
+dydt(2)= (N_INF - y(2))/TAO_N;
+
+
+end
+

@@ -1,0 +1,10 @@
+function dydt = Eq_Fitzhugh_Nagumo_mehrdad(t,y,param)
+    phi=param(1);
+    a=param(2);
+    b=param(3);
+    I=param(4);
+    dydt = zeros(2,1);
+    dydt(1) = y(1)- (y(1).^3)/3 - y(2) + I;
+    dydt(2) = phi*(y(1) + a - b*y(2));
+return
+    

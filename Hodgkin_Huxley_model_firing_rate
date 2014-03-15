@@ -1,0 +1,113 @@
+clear all
+clc
+close all
+
+% script for simulating dynamic hodgkin & huxley model for External input
+% I_e between 0 and 60 pA with steps of 1 pA, and time between 50 ms and 650 ms and lasts for 600 ms.
+% and plot FIRING RATE VS I_E !!
+
+% these are the parameters(constants):
+
+dt= 0.02;       % jumps in time
+C_m= 1;         % capacitence per unit area ( uF/cm2)
+A= 1;           % area of the membrane in cm^2
+E_l= -54;       % reversal potential of leakage in mV
+E_k= -77;       % reversal potential of pottasium in mV
+E_na= 50;       % reversal potential for sodium in mV
+g_l= 0.3;       % maximum conductance per unit area for leakage in mS/cm^2
+g_k= 36;        % maximum conductance per unit area for pottasium in mS/cm^2
+g_na= 120;      % maximum conductance per unit area for sodium in mS/cm^2
+t_max= 500;     % defining t_max in msec
+t= 0:dt:t_max; % time in msec
+I_e=0:1:50;     % I_e from 0 to 60 pA with jumps of 1 pA
+
+  
+n_inf  =  zeros(1,length(t));  % (depends on voltage) has variable alpha and beta which further depend on voltage
+alpha_n = zeros(1,length(t));  % depends only on voltage 
+beta_n = zeros(1,length(t));   % depends only on voltage 
+ 
+m_inf =  zeros(1,length(t));   % (depends on voltage) has variable alpha and beta which further depend on voltage
+alpha_m = zeros(1,length(t));  % depends only on voltage 
+beta_m = zeros(1,length(t));   % depends only on voltage 
+
+h_inf =  zeros(1,length(t));   % (depends on voltage) has variable alpha and beta which further depend on voltage
+alpha_h = zeros(1,length(t));  % depends only on voltage 
+beta_h = zeros(1,length(t));   % depends only on voltage 
+
+firing_rate=[];                %initializing firing rate !! imp*** always initialize the vectors outside the loop .
+
+
+for j=1:length(I_e)                % the range of I_e 
+    
+    %initial conditions and variables:
+    
+    v= zeros(1,length(t));              % voltage   
+    I_m= zeros(1,length(t));            % current I_m in pA/cm^2 
+    n= zeros(1,length(t));              % initializing vector 'n' which is nothing but probability of voltage gated ion channels for pottasium
+    m= zeros(1,length(t));              % initializing  vector 'm' which is nothing but probability of voltage gated ion channels for sodium
+    h= zeros(1,length(t));              % initiaizing vector 'h' which is nothing but probability of voltage gated ion channels for sodium are open, inactive, closed .
+    h(1)=1;                             % initial value of h
+    n(1)=0;                            % initial value of n 
+    m(1)=0;                            % initial value of m
+    v(1) = -75;                         % in mV
+    tao_n =   zeros(1,length(t));       % time constant between peaks for pottasium ( depends on voltage) has variables alpha, beta which further depend on voltage
+    tao_m =   zeros(1,length(t));       % time constant between peaks for sodium ( depends on voltage) has variables alpha, beta which further depend on voltage 
+    tao_h =   zeros(1,length(t));       % time constant between peaks for sodium ( depends on voltage) has variables alpha, beta which further depend on voltage  
+   
+    spikes=0;                           % varibale = spikes with initial value as 0
+    
+    for i=2:length(t);               % simulating loop range 
+            
+                                     
+    % simulating for gating varibale 'n'
+    
+    alpha_n(i)= 0.01.*(v(i-1) + 55)/(1 - exp(-0.1.*(v(i-1) + 55)));    % first we will define the variables and later do the equation.
+    beta_n(i)= 0.125*exp(-0.0125.*(v(i-1) + 65));                      % rememebr indexing is very important !!
+    n_inf(i)= alpha_n(i)/(alpha_n(i) + beta_n(i));
+    tao_n(i)= 1/(alpha_n(i) + beta_n(i));
+    
+    %simulating for gating variable 'm'
+    
+    alpha_m(i)= 0.1.*(v(i-1) + 40)/(1 - exp(-0.1.*(v(i-1) + 40)));     % first we will define the variables and later do the equation.
+    beta_m(i)= 4*exp(-0.0556.*(v(i-1) + 65));                          % rememebr indexing is very important !!
+    m_inf(i)= alpha_m(i)/(alpha_m(i) + beta_m(i));
+    tao_m(i)= 1/(alpha_m(i) + beta_m(i));
+        
+    %simulating for gating variable 'h'
+    
+    alpha_h(i) = 0.07.*exp(-0.05.*(v(i-1) + 65));                       % first we will define the variables and later do the equation.
+    beta_h(i) = 1/(1 + exp(-0.1.*(v(i-1) + 35)));                       % rememebr indexing is very important !!
+    h_inf(i) = alpha_h(i)/(alpha_h(i) + beta_h(i));
+    tao_h(i)= 1/(alpha_h(i) + beta_h(i));
+    
+    %simulating the main equations;
+    
+    n(i)= n(i-1) + (-n(i-1) + n_inf(i))*dt/tao_n(i);
+    m(i)= m(i-1) + (-m(i-1) + m_inf(i))*1/tao_m(i)*dt;
+    h(i)= h(i-1) + (-h(i-1) + h_inf(i))*1/tao_h(i)*dt; 
+    
+    I_m(i)= g_l.*(v(i-1)-E_l) + g_k*n(i)^4.*(v(i-1)- E_k) + g_na*m(i)^3*h(i).*(v(i-1)-E_na);
+    v(i)= v(i-1) + (-I_m(i) + I_e(j)/A)*dt/C_m;
+    
+    if v(i)*v(i-1)< 0
+        spikes= spikes + 0.5;                                          % for calucilating firing rate !(0.5= because this event happens twice ) 
+    end
+    end
+    firing_rate(j)= spikes/((t_max)*0.001);   % calculating of firing rate(Hertz) with each step in I_e for 600 ms
+    spikes
+end
+
+figure                                 % plotting the figures; % for gating varibale n,h,m and v and I_m for no external input current i.e I_e=0
+plot(t, v,'black')
+xlabel('time msec')
+ylabel('voltage mV')
+hleg1=legend('I_e=8 pA/cm^2');
+hold on 
+
+figure                                 %plotting I_e vs firing rate
+scatter(I_e,firing_rate)
+xlabel('I_e (external input)(pA)')
+ylabel('firing rate (Hertz)')
+hold on
+
+

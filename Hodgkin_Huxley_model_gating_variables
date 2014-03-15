@@ -1,0 +1,115 @@
+clear all
+clc
+close all
+
+%script for simulating gating variables for different ions:
+
+v= -100:0.13:100;              % voltage
+dt= 0.01;                      % jumps in time
+%e= 2.71828;                   % value of e
+n= zeros(1,length(v));         % initializing vector n
+m= zeros(1,length(v));        % initializing  vector m
+h= zeros(1,length(v));        % initiaizing vector h
+
+
+tao_n =   zeros(1,length(v));  % time constant between peaks for pottasium ( depends on voltage) has variables alpha, beta which further depend on voltage  
+n_inf  =  zeros(1,length(v));  % (depends on voltage) has variable alpha and beta which further depend on voltage
+alpha_n = zeros(1,length(v));  % depends only on voltage 
+beta_n = zeros(1,length(v));   % depends only on voltage 
+
+tao_m =   zeros(1,length(v));  % time constant between peaks for sodium ( depends on voltage) has variables alpha, beta which further depend on voltage  
+m_inf =  zeros(1,length(v));   % (depends on voltage) has variable alpha and beta which further depend on voltage
+alpha_m = zeros(1,length(v));  % depends only on voltage 
+beta_m = zeros(1,length(v));   % depends only on voltage 
+
+tao_h =   zeros(1,length(v));  % time constant between peaks for sodium ( depends on voltage) has variables alpha, beta which further depend on voltage  
+h_inf =  zeros(1,length(v));   % (depends on voltage) has variable alpha and beta which further depend on voltage
+alpha_h = zeros(1,length(v));  % depends only on voltage 
+beta_h = zeros(1,length(v));   % depends only on voltage 
+
+
+for i=2:length(v);
+    
+    % simulating for gating varibale 'n'
+    alpha_n(i)= 0.01.*(v(i-1) + 55)/(1 - exp(-0.1.*(v(i-1) + 55)));    % first we will define the variables and later do the equation woohoo
+    beta_n(i)= 0.125*exp(-0.0125.*(v(i-1) + 65));                    % rememebr indexing is very important !!
+    n_inf(i)= alpha_n(i)/(alpha_n(i) + beta_n(i));
+    tao_n(i)= 1/(alpha_n(i) + beta_n(i));
+    n(i)= n(i-1) + (-n(i-1) + n_inf(i))*dt/tao_n(i);          %here you index with (i) as you have already defined the x_inf as v(i-1) before !
+    
+    %simulating for gating variable 'm'
+    
+    alpha_m(i)= 0.1.*(v(i-1) + 40)/(1 - exp(-0.1.*(v(i-1) + 40)));     % first we will define the variables and later do the equation woohoo
+    beta_m(i)= 4*exp(-0.0556.*(v(i-1) + 65));                        % rememebr indexing is very important !!
+    m_inf(i)= alpha_m(i)/(alpha_m(i) + beta_m(i));
+    tao_m(i)= 1/(alpha_m(i) + beta_m(i));
+    m(i)= m(i-1) + (-m(i-1) + m_inf(i))*1/tao_m(i)*dt;                     %here you index with (i) as you have already defined the m_inf as v(i-1) before !! 
+    
+    %simulating for gating variable 'h'
+    
+    alpha_h(i) = 0.07.*exp(-0.05.*(v(i-1) + 65));                      % first we will define the variables and later do the equation woohoo
+    beta_h(i) = 1/(1 + exp(-0.1.*(v(i-1) + 35)));                        % rememebr indexing is very important !!
+    h_inf(i) = alpha_h(i)/(alpha_h(i) + beta_h(i));
+    tao_h(i)= 1/(alpha_h(i) + beta_h(i));
+    h(i)= h(i-1) + (-h(i-1) + h_inf(i))*1/tao_h(i)*dt;                     %here you index with (i) as you have already defined the h_inf as v(i-1) before !
+    
+end
+   
+
+figure                                                            % plotting the figures; % for gating varibales with voltage
+plot(v,alpha_n,'red', v,alpha_m,'green', v,alpha_h,'yellow')
+hleg1=legend('alpha_n','alpha_m','alpha_h')
+xlabel('voltage [mV]')
+ylabel('alpha(ms^-1)')
+title('alpha vs voltage curve of gating variables')
+hold on
+
+figure
+plot(v,beta_n,'red',v,beta_m,'green', v,beta_h,'yellow')
+hleg2=legend('beta_n','beta_m','beta_h')
+xlabel('voltage [mV]')
+ylabel('beta(ms^-1)')
+title('beta vs voltage curve of gating variables')
+hold on
+
+figure
+plot(v,n_inf,'red', v,m_inf, 'green', v,h_inf,'yellow')
+hleg3=legend('n_infinity','m_infinity','h_infinity')
+xlabel('voltage [mV]')
+ylabel('x_infinity (ms^-1)')
+title('x_infinity vs voltage curve of gating variables')
+hold on
+
+figure
+plot(v,tao_n,'red', v,tao_m,'green', v,tao_h,'yellow')
+hleg4=legend('tao_n','tao_m','tao_h')
+xlabel('voltage [mV]')
+ylabel('tao (in msec)')
+title('tao vs voltage curve of gating variables')
+hold on
+
+figure
+plot(v,alpha_n, 'red', v,beta_n,'green' )
+hleg4=legend('alpha_n','beta_n')
+xlabel('voltage [mV]')
+ylabel('alpha or beta(ms^-1)')
+title('alpha,beta vs voltage curve of gating variable -n')
+hold on 
+
+figure
+plot(v,alpha_m, 'red', v,beta_m, 'green')
+hleg5=legend('alpha_m','beta_m')
+xlabel('voltage [mV]')
+ylabel('alpha or beta(ms^-1)')
+title('alpha, beta vs voltage curve of gating variable -m')
+hold on 
+
+
+figure
+plot(v,alpha_h, 'red', v,beta_h, 'green')
+hleg5=legend('alpha_h','beta_h')
+xlabel('voltage [mV]')
+ylabel('alpha or beta(ms^-1)')
+title('alpha, beta vs voltage curve of gating variable -h')
+hold on 
+    
