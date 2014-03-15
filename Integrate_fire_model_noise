@@ -1,0 +1,56 @@
+%function to calculate noise in the signal and relative output in the form of voltage in a neuron 
+
+function [spike_times V]= integrateandfire(del_t, input)   % that is we define a function that has del_t and current input as the input 
+
+
+del_t=0.1;             % the size of my jumps aling the t axis(t(i)-t(i-1)
+max_t= 300;            % max volume of t i evaluate my solution at
+t=(1:del_t:max_t);     % create the vector t
+I= 1.5;                % current  amplitude introduction in nA
+v_th= -50;             % threshold value of model.  in mV
+tao= 30;               % my delay time constant mSec
+r= 90;                 % resistence in Mega Ohm.
+E = -65;               % this is our v_reset and the stable condition. and also initial condition 
+v=zeros(1,length(input));  % shape of vector 
+v(1)= E;               % initializing the intial condition
+i=(2);                 % initializing the runnind index of loop
+m=0;                    %initiate the value for spike times m 
+spike_times=[];         %initialze the vector for spike times
+
+for i=2:length(input)
+    if t(i)>50 && t(i) < 53;   % ******   so the constant input is for only 2 seconds 
+        
+        n= 0;   % adding a little noise to the system !
+        v(i)= v(i-1) + ((-v(i-1) + E + (I+n)*r)*del_t)/tao; % as the relation is tau(dv/dt)= -v + e +rI
+        
+        %to check if the voltage cross the threshold 
+        if v(i)>v_th;
+            v(i)= E;
+            m= m + 1;
+            spike_times= i + del_t ;
+            disp(['The spike time is  ' num2str(spike_time(m))]);  %this just display the spike_time for each current.
+        end
+        
+        % if it is not input time ( 50,300) then calculate the voltage
+        % without input 
+    else
+        v(i)= v(i-1) + ((-v(i-1) + E)*del_t)/tao; % as the relation is tau(dv/dt)= -v + e
+    end
+    i=i+1; 
+end
+
+%plots the function t vs v
+
+plot(t,v,'k.','markersize',10)
+hold on 
+xlabel('Time [ms]')
+ylabel('v [mV]')
+title('Passive membrane potential dynamics')
+box off
+
+
+
+
+
+
+

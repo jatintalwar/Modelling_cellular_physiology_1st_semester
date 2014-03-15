@@ -1,0 +1,73 @@
+% A script file for calculating the firing rate vs. input
+% graph of an integrate and fire neuron.
+
+% All voltage is in mV, all time is in millisecond, current input is in nano-Ampere
+% and resistance is in Ohm.
+% External input is given between times 50ms and 300ms.
+
+V_reset = -65;   % reset value of the membrane potential
+V_th = -50;      % threshold value
+E_L = -65;       % reaversal potential
+Tau_m = 30;      % membrane time constant
+
+t_max= 350;      % maximum time for the simulation to run
+dt=0.1;          % time step of the simulation
+t=0:0.1:t_max;   % vector of time.
+V_initial= V_reset;  % initial conditions.
+
+V=zeros(length(V_initial), length(t));
+V(1)= V_initial' ;
+
+R_m = 90*10^6;   % membrane resistance
+I=[0:0.1:2].*10^-9;       % external input into the cell
+I=I.*10^3;        % converting to adjust the current to units of mV
+
+input_t_initial=50; % initial time of stimulus
+input_t_end=300;    % end time fo stimulu
+
+Firing_rate=zeros(1,length(I));
+
+% The body of the simulation
+% The loop for calculating the voltage
+for j=1:length(I)
+    
+    Spike_time=[];
+    m=0;    % the index for spike times. Need to initialize here. 
+    
+    for i=1:length(t)-1
+        % checking if it is stimulus time
+        if t(i)>50 && t(i)<300
+            V(i+1)=V(i)+(-V(i)+E_L+R_m*I(j))*dt/Tau_m;
+
+            %checking if the voltage crossed threshold
+            if V(i+1)>V_th
+                V(i+1)=V_reset;
+                m=m+1;
+                Spike_time(m)=t(i);
+            end
+
+            % if it is not stimulus time, calculate
+            % voltage without input
+        else
+            V(i+1)=V(i)+(-V(i)+E_L)*dt/Tau_m;
+        end
+    end
+
+    % calculating the firing rate
+    if ~isempty(Spike_time)
+        Firing_rate(j)=length(Spike_time)./((input_t_end-input_t_initial)/1000);
+    else
+        Firing_rate(j)=0;
+    end
+    clear Spike_time m
+end
+
+% editing the plot
+figure
+plot(I.*10^6, Firing_rate ,'k.','markersize',20)
+xlabel('Input current [nA]')
+ylabel('Firing rate')
+title('Firing rate vs. Input current')
+axis([-0.1 max(I.*10^6)*1.05 -10 max(Firing_rate)*1.05])
+box off
+

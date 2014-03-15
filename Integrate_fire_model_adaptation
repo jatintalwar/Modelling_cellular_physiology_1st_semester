@@ -1,0 +1,61 @@
+close all 
+clear all
+%this moel calculates the adaptation in interspike interval due to a long
+%input of current !
+%these are the parameters:
+
+del_t=0.1;             % the size of my jumps aling the t axis(t(i)-t(i-1)
+max_t= 350;            % max volume of t i evaluate my solution at
+I= (0:0.1:2)*10^-6;   % current  amplitude introduction in micro A
+v_th= -50;             % threshold value of model.  in mV
+tao_m= 30;             % my delay time constant mSec
+tao_adapt= 100;        % adaptation time constant  in ms
+r= 90*10^6;            % resistence in Ohm.
+E = -65;               % this is our v_reset and the stable condition. and also initial condition in mv
+Ek= -70;               % in mv the value of resting potential it come back to 
+del_g_adapt = 10^-8;   %jumps in g adapt whenever there is a spike. in nano(siemens) this gives the adaptation 
+
+t=(0:del_t:max_t);     % create the vector t for time
+v=zeros(1,length(t));  % shape of vector for voltage .
+v(1)= E;               % initializing the intial condition        
+y=zeros(1,20);         % this is the firing rate so defining it
+
+
+
+
+ for j=1:20;                                              % iterate from 1 to length of I 
+     k=zeros(1,20);                                       % counts the spikes for each value of I (which are 20 values)
+     g_adapt=zeros(1,length(t));                          % denoting g_adapt which is Gsra     % i denoted it to 2 so never do that because every time the v changes you have ur g_adapt change.
+     
+        for i=2:length(t);                                % initializing the running index of loop
+            if t(i)>50 && t(i) < 250;
+                I_amp=I(j);                              % we define a new variable i_amp that will take the value of I current from 0 to 20
+            else I_amp=0;
+            end
+            v(i)= v(i-1) + (-v(i-1) + E + I_amp*r - r*g_adapt(i-1)*(v(i-1)-Ek))*del_t/tao_m; % as the relation is tau(dv/dt)= -v + e +rI-r*g_adapt(v-E)
+            g_adapt(i)=g_adapt(i-1) -g_adapt(i-1)*del_t/tao_adapt;
+                
+            if v(i)>v_th;                               %to check if the voltage cross the threshold
+                v(i)= E;
+                g_adapt(i)=g_adapt(i-1) + del_g_adapt;
+                k(j)=k(j) + 1 ;                        %because jump only happens when we have a spike, so we keep on iterating till j= 20  
+            end                                        % we do not need this actually becaue we define d if this is not time t then I = 0 straight awa. [ v(i)= v(i-1) + ((-v(i-1) + E-r*g_adapt(i)*(v(i)-Ek))*del_t)/tao; % as the relation is tau(dv/dt)=
+        end
+        
+        y(j)=k(j)/0.25;                                 %we do this becaue the current lasts for a 250 ms and firing rate is in hertz(per second) so we divide by 1000 to get it in hertz
+        disp(['The firing rate is  ' num2str(y(j))]);  %this just display the firing rate(y(j)) for each current.
+        
+ end
+ 
+ j=1:20; % we do this te define j because the plot includes j (subplot last) 
+
+
+%Plotting V against t, g against t and the firing rate for different
+% inputs ( that is y(number of current inputs against j(the current intensity))
+figure  
+subplot(3,1,1)
+plot(t,v)
+subplot(3,1,2)
+plot(t,g_adapt)
+subplot(3,1,3)
+plot(j,y)

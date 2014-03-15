@@ -1,0 +1,37 @@
+% A script file for simulating I&F neuron in MATLAB
+% This is a first file for simulating just the subthreshold passive
+% dynamics, with no external inputs.
+% All voltage is in mV, all time is in millisecond.
+
+
+V_reset = -65;   % defining the reset value of the membrane potential
+E_L = -65;       % defining the reaversal potential
+Tau_m = 30;      % defining the membrane time constant
+
+t_max= 150;      % setting the maximum time for the simulation to run
+dt=0.1;          % setting the time step of the simulation
+t=0:0.1:t_max;   % creating the vector of time.
+V_initial=[ -90 : 1: -56 ];  % creating a vector with the different initial conditions. 
+
+% The body of the simulation
+
+for j=1:length(V_initial)
+    V(1)=V_initial(j);
+
+    % The loop for calculating the voltage
+    for i=1:length(t)-1
+
+        V(i+1)=V(i)+(-V(i)+E_L)*dt/Tau_m;
+
+    end
+    plot(t,V,'k-', 'linewidth', 1)
+    hold on 
+end
+
+% editing the plot
+xlabel('Time [ms]')
+ylabel('V [mV]')
+title('Passive membrane potential dynamics')
+axis([min(t)-5 max(t)+5 min(V_initial)-2 max(V_initial)+2])
+box off
+

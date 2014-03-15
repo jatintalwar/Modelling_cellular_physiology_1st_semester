@@ -1,0 +1,64 @@
+%%script for simulating network of two neurons displaying integrate adn fire neuron model
+%%dynamics connected synaptically 
+clear all 
+clc
+close all
+
+%%
+%%Parameters-
+t= 50:1:200;   % time
+dt= 0.04;       % time step 
+E_l= -70;      % leakage reversal potential in mV
+Rm_I= 25;      % external voltage
+v_th = -56;    % threshold voltage in mV
+v_reset = -80; % in mV reset voltage 
+tao_s= 10;     % time constant for avtivation level of synapse in msec 
+tao_m= 30;     % membrane time constant in msec
+E_s= 0;        % excitatory synapse
+r_m_Gs= 0.5;   % value for membrane resitance and maximum conductance no units i guess
+
+
+%%
+%%initializing vectors 
+v_1=    zeros(1,length(t));
+v_2=    zeros(1,length(t));
+p_s1=  zeros(1,length(t));
+p_s2=  zeros(1,length(t));
+sumofp_s1=zeros(1,length(t));
+sumofp_s2=zeros(1,length(t));
+v_1(1)= v_reset;
+v_2(1)= v_reset;
+
+
+%%
+%%simulating the equations:
+
+for i=1:length(t);
+    
+    
+    v_1(i+1)= v_1(i) + (E_l - v_1(i)-r_m_Gs*sumofp_s1.*(v_1(i) - E_s) + Rm_I)*dt/tao_m ;
+    v_2(i+1)= v_2(i) + (E_l - v_2(i)-r_m_Gs*sumofp_s2.*(v_2(i) - E_s) + Rm_I)*dt/tao_m ;
+    
+    if v_1(i+1)> v_th ;
+        v_1(i+1)= v_reset ;
+    end
+    
+    for j=i:length(t)
+        
+        p_s2 = (t(j)-t(i))/tao_s*(exp^((t(j)-t(i)/tao_s)));    
+        
+    end
+    
+    sumofp_s2= sumofp_s2 + p_s2;
+    sumofp_s1= sumofp_s1 + p_s1;
+    
+end
+
+figure
+plot(t,v_1,'black',t,v_2, 'red')
+xlabel('time')
+ylabel('voltage')
+titel('I&F network of two cells')
+figure
+plot(t,sumofps_1,'black')
+
